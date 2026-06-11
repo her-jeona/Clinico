@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}About Us - Clinico{% endblock %}
+
+{% block content %}
+<section class="aft-hero">
+  <h1>About Clinico</h1>
+</section>
+
+<section class="abt-section">
+  <div class="abt-container">
+    <div class="image-area">
+      <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80" alt="Hospital">
+      <img class="small-img" src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80" alt="Doctor">
+      <div class="icon-circle"><i class="fa-solid fa-heart-pulse"></i></div>
+    </div>
+    <div class="abt-content">
+      <p class="abt-subtitle">ABOUT US</p>
+      <h2>Transforming Healthcare with Smart Technology</h2>
+      <p>Clinico is a smart appointment management system designed to eliminate the chaos of manual clinic scheduling. We connect patients with experienced doctors through a transparent, token-based queue system that reduces waiting times and improves the overall healthcare experience.</p>
+      <p>Our platform serves patients, doctors, and administrators — each with their own tailored dashboard — making healthcare management seamless, efficient, and accessible.</p>
+      <div class="divider"></div>
+      <h3 class="emergency-title">Smart Features</h3>
+      <div class="abt-features">
+        <div class="abt-feature"><span class="check">✔</span> Token-Based Queue</div>
+        <div class="abt-feature"><span class="check">✔</span> Real-Time Updates</div>
+        <div class="abt-feature"><span class="check">✔</span> Doctor Scheduling</div>
+        <div class="abt-feature"><span class="check">✔</span> Admin Control Panel</div>
+        <div class="abt-feature"><span class="check">✔</span> Appointment Reports</div>
+        <div class="abt-feature"><span class="check">✔</span> Secure Login</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services">
+  <div class="card">
+    <div class="icon-circ"><i class="fa-solid fa-ticket"></i></div>
+    <h3>Token System</h3>
+    <p>Auto-generated sequential tokens ensure fair, transparent queue management for every patient.</p>
+    <a href="{{ url_for('register') }}" class="btn">Get Started</a>
+  </div>
+  <div class="card">
+    <div class="icon-circ"><i class="fa-solid fa-calendar-check"></i></div>
+    <h3>Easy Booking</h3>
+    <p>Search doctors by specialization, pick your slot, and book instantly — all in a few clicks.</p>
+    <a href="{{ url_for('register') }}" class="btn">Book Now</a>
+  </div>
+  <div class="card">
+    <div class="icon-circ"><i class="fa-solid fa-chart-pie"></i></div>
+    <h3>Smart Reports</h3>
+    <p>Doctors and admins get insightful analytics — daily trends, busiest hours, and performance stats.</p>
+    <a href="{{ url_for('login') }}" class="btn">View Reports</a>
+  </div>
+</section>
+
+<section class="stats-section">
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-user-doctor"></i></div><h2>15+</h2><p>Years Experience</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-hospital"></i></div><h2>4000+</h2><p>Happy Patients</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-user-nurse"></i></div><h2>50+</h2><p>Expert Doctors</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-stethoscope"></i></div><h2>10+</h2><p>Medical Branches</p></div>
+</section>
+{% endblock %}

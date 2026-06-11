@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Queue Status - Clinico{% endblock %}
+
+{% block content %}
+<section class="auth-section" style="min-height:80vh;">
+  <div class="auth-card" style="max-width:480px;text-align:center;">
+    <div class="token-number" style="font-size:80px;font-weight:900;color:#0aa7a7;line-height:1;">
+      #{{ appt.token_no }}
+    </div>
+    <h2 style="margin:15px 0 5px;">Your Queue Token</h2>
+    <p style="color:#888;">Dr. {{ appt.doctor_name }} — {{ appt.specialization }}</p>
+    <p style="color:#888;margin-top:5px;"><i class="fa-solid fa-calendar"></i> {{ appt.slot_date }}
+       &nbsp;<i class="fa-solid fa-clock"></i> {{ appt.start_time }}</p>
+
+    <div style="margin:30px 0;">
+      <span class="status-badge status-{{ appt.status | lower | replace(' ','-') }}" style="font-size:16px;padding:10px 25px;">
+        {{ appt.status }}
+      </span>
+    </div>
+
+    {% if appt.status in ['Confirmed','In Queue'] %}
+    <div class="info-note" style="margin:20px 0;">
+      <i class="fa-solid fa-users"></i>
+      <strong>{{ ahead }}</strong> patient(s) ahead of you
+    </div>
+    {% endif %}
+
+    <div class="queue-steps" style="margin:30px 0;">
+      <div class="step {% if appt.status in ['Confirmed','In Queue','In Progress','Completed'] %}done{% endif %}">
+        <div class="step-dot"></div><span>Confirmed</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step {% if appt.status in ['In Queue','In Progress','Completed'] %}done{% endif %}">
+        <div class="step-dot"></div><span>In Queue</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step {% if appt.status in ['In Progress','Completed'] %}done{% endif %}">
+        <div class="step-dot"></div><span>In Progress</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step {% if appt.status == 'Completed' %}done{% endif %}">
+        <div class="step-dot"></div><span>Done</span>
+      </div>
+    </div>
+
+    <p class="queue-note"><i class="fa-solid fa-circle-info"></i> Please arrive 10 minutes early and show this token at reception.</p>
+
+    <a href="{{ url_for('patient_dashboard') }}" class="auth-btn" style="display:inline-block;margin-top:20px;text-decoration:none;">
+      Back to Dashboard
+    </a>
+  </div>
+</section>
+{% endblock %}

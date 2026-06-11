@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Patient Dashboard - Clinico{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-circle patient-avatar"><i class="fa-solid fa-user"></i></div>
+      <h3>{{ session.name }}</h3>
+      <span class="role-badge patient-badge">Patient</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#overview"   class="nav-item active" onclick="showTab('overview',this)"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="#book"       class="nav-item" onclick="showTab('book',this)"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</a>
+      <a href="#appts"      class="nav-item" onclick="showTab('appts',this)"><i class="fa-solid fa-list"></i> My Appointments</a>
+      <a href="#queue"      class="nav-item" onclick="showTab('queue',this)"><i class="fa-solid fa-ticket"></i> My Token</a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="dash-main">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="dash-header">
+        <h1>Welcome, {{ session.name }} <i class="fa-solid fa-hand-sparkles"></i></h1>
+        <p>Manage your appointments and track your health journey</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card teal">
+          <i class="fa-solid fa-calendar-check"></i>
+          <h3>{{ appointments | selectattr('status', 'in', ['Scheduled','Confirmed','In Queue','In Progress']) | list | length }}</h3>
+          <p>Active Appointments</p>
+        </div>
+        <div class="stat-card blue">
+          <i class="fa-solid fa-circle-check"></i>
+          <h3>{{ appointments | selectattr('status', 'equalto', 'Completed') | list | length }}</h3>
+          <p>Completed</p>
+        </div>
+        <div class="stat-card red">
+          <i class="fa-solid fa-ban"></i>
+          <h3>{{ appointments | selectattr('status', 'equalto', 'Cancelled') | list | length }}</h3>
+          <p>Cancelled</p>
+        </div>
+        <div class="stat-card orange">
+          <i class="fa-solid fa-ticket"></i>
+          <h3>
+            {% set active = appointments | selectattr('status', 'in', ['Confirmed','In Queue']) | list %}
+            {% if active %}#{{ active[0].token_no }}{% else %}--{% endif %}
+          </h3>
+          <p>Current Token</p>
+        </div>
+      </div>
+
+      <!-- UPCOMING APPOINTMENTS -->
+      <div class="dash-card">
+        <div class="card-head"><h3><i class="fa-solid fa-clock"></i> Upcoming Appointments</h3></div>
+        {% set upcoming = appointments | selectattr('status', 'in', ['Scheduled','Confirmed','In Queue']) | list %}
+        {% if upcoming %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Doctor</th><th>Specialization</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for a in upcoming %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td>{{ a.doctor_name }}</td>
+                  <td>{{ a.specialization }}</td>
+                  <td>{{ a.slot_date }}</td>
+                  <td>{{ a.start_time }} - {{ a.end_time }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                  <td>
+                    <form method="POST" action="{{ url_for('cancel_appointment', appt_id=a.appointment_id) }}" onsubmit="return confirm('Cancel this appointment?')">
+                      <button type="submit" class="btn-sm btn-danger">Cancel</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>No upcoming appointments. Book one now!</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- BOOK APPOINTMENT TAB -->
+    <div id="tab-book" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-calendar-plus"></i> Book Appointment</h1>
+        <p>Find a doctor and book your slot</p>
+      </div>
+
+      <!-- SEARCH DOCTORS -->
+      <div class="dash-card">
+        <div class="card-head"><h3>Find a Doctor</h3></div>
+        <div class="doctor-grid">
+          {% for doc in doctors %}
+          <div class="doctor-book-card" onclick="selectDoctor({{ doc.doctor_id }}, '{{ doc.name }}', '{{ doc.specialization }}')">
+            <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+            <h4>{{ doc.name }}</h4>
+            <p class="doc-spec">{{ doc.specialization }}</p>
+            <p class="doc-fees"><i class="fa-solid fa-indian-rupee-sign"></i> {{ doc.consultation_fees }}</p>
+            <p class="doc-contact"><i class="fa-solid fa-phone"></i> {{ doc.contact_no }}</p>
+            <button class="btn-select">Select Doctor</button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- BOOKING FORM (hidden until doctor selected) -->
+      <div id="bookingForm" class="dash-card" style="display:none;">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-calendar-check"></i> Book with <span id="selectedDocName"></span></h3>
+        </div>
+        <form method="POST" action="{{ url_for('book_appointment') }}">
+          <input type="hidden" name="doctor_id" id="selectedDocId">
+          <div class="form-group">
+            <label>Select Available Slot</label>
+            <select name="slot_id" id="slotSelect" required class="form-control">
+              <option value="">-- Select a time slot --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Problem Description</label>
+            <textarea name="problem_desc" rows="3" placeholder="Briefly describe your health concern..." class="form-control"></textarea>
+          </div>
+          <button type="submit" class="auth-btn" style="width:auto;padding:12px 40px;">Confirm Booking</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MY APPOINTMENTS TAB -->
+    <div id="tab-appts" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-list"></i> My Appointments</h1>
+        <p>View all your appointment history</p>
+      </div>
+      <div class="dash-card">
+        {% if appointments %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for a in appointments %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td>
+                    <strong>{{ a.doctor_name }}</strong><br>
+                    <small>{{ a.specialization }}</small>
+                  </td>
+                  <td>{{ a.slot_date }}</td>
+                  <td>{{ a.start_time }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                  <td>
+                    {% if a.status in ['Scheduled', 'Confirmed'] %}
+                    <form method="POST" action="{{ url_for('cancel_appointment', appt_id=a.appointment_id) }}" onsubmit="return confirm('Cancel this appointment?')">
+                      <button type="submit" class="btn-sm btn-danger">Cancel</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No appointments found.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- QUEUE TOKEN TAB -->
+    <div id="tab-queue" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-ticket"></i> My Queue Token</h1>
+        <p>Track your position in the doctor's queue</p>
+      </div>
+
+      {% set active_appts = appointments | selectattr('status', 'in', ['Confirmed','In Queue','In Progress']) | list %}
+      {% if active_appts %}
+        {% for a in active_appts %}
+        <div class="token-display-card">
+          <div class="token-number">#{{ a.token_no }}</div>
+          <h3>Your Token Number</h3>
+          <p>Dr. {{ a.doctor_name }} — {{ a.specialization }}</p>
+          <p><i class="fa-solid fa-calendar"></i> {{ a.slot_date }} &nbsp; <i class="fa-solid fa-clock"></i> {{ a.start_time }}</p>
+          <div class="queue-status">
+            <span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span>
+          </div>
+
+          <div class="queue-steps">
+            <div class="step {% if a.status in ['Confirmed','In Queue','In Progress','Completed'] %}done{% endif %}">
+              <div class="step-dot"></div><span>Confirmed</span>
+            </div>
+            <div class="step-line {% if a.status in ['In Queue','In Progress','Completed'] %}done{% endif %}"></div>
+            <div class="step {% if a.status in ['In Queue','In Progress','Completed'] %}done{% endif %}">
+              <div class="step-dot"></div><span>In Queue</span>
+            </div>
+            <div class="step-line {% if a.status in ['In Progress','Completed'] %}done{% endif %}"></div>
+            <div class="step {% if a.status in ['In Progress','Completed'] %}done{% endif %}">
+              <div class="step-dot"></div><span>In Progress</span>
+            </div>
+            <div class="step-line {% if a.status == 'Completed' %}done{% endif %}"></div>
+            <div class="step {% if a.status == 'Completed' %}done{% endif %}">
+              <div class="step-dot"></div><span>Completed</span>
+            </div>
+          </div>
+
+          <p class="queue-note"><i class="fa-solid fa-circle-info"></i> Please arrive 10 minutes before your slot time.</p>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="dash-card">
+          <div class="empty-state">
+            <i class="fa-solid fa-ticket" style="font-size:60px;color:#ddd;"></i>
+            <p>No active queue token. Book an appointment to get your token!</p>
+            <button onclick="showTab('book',null)" class="auth-btn" style="width:auto;padding:12px 30px;margin-top:15px;">Book Now</button>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+
+{% block scripts %}
+<script>
+function selectDoctor(id, name, spec) {
+  document.getElementById('selectedDocId').value = id;
+  document.getElementById('selectedDocName').textContent = name + ' (' + spec + ')';
+  document.getElementById('bookingForm').style.display = 'block';
+  document.getElementById('slotSelect').innerHTML = '<option value="">Loading slots...</option>';
+
+  fetch('/api/slots/' + id)
+    .then(r => r.json())
+    .then(slots => {
+      const sel = document.getElementById('slotSelect');
+      sel.innerHTML = '<option value="">-- Select a time slot --</option>';
+      if (slots.length === 0) {
+        sel.innerHTML += '<option disabled>No slots available</option>';
+      } else {
+        slots.forEach(s => {
+          sel.innerHTML += `<option value="${s.slot_id}">${s.slot_date} | ${s.start_time} - ${s.end_time}</option>`;
+        });
+      }
+    });
+
+  document.getElementById('bookingForm').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}
+{% endblock %}

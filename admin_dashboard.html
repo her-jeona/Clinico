@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - Clinico{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-circle admin-avatar"><i class="fa-solid fa-shield-halved"></i></div>
+      <h3>{{ session.name }}</h3>
+      <span class="role-badge admin-badge">Administrator</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showTab('overview',this)"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="#" class="nav-item" onclick="showTab('doctors',this)"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
+      <a href="#" class="nav-item" onclick="showTab('patients',this)"><i class="fa-solid fa-users"></i> Patients</a>
+      <a href="#" class="nav-item" onclick="showTab('appointments',this)"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+      <a href="#" class="nav-item" onclick="showTab('pending',this)">
+        <i class="fa-solid fa-user-clock"></i> Pending Approvals
+        {% if pending_doctors %}<span class="badge-count">{{ pending_doctors|length }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('admin_reports') }}" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Reports</a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="dash-main">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="dash-header">
+        <h1>Admin Control Panel <i class="fa-solid fa-shield-halved"></i></h1>
+        <p>System overview and management</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card teal">
+          <i class="fa-solid fa-users"></i>
+          <h3>{{ stats.total_patients or 0 }}</h3>
+          <p>Total Patients</p>
+        </div>
+        <div class="stat-card blue">
+          <i class="fa-solid fa-user-doctor"></i>
+          <h3>{{ stats.total_doctors or 0 }}</h3>
+          <p>Active Doctors</p>
+        </div>
+        <div class="stat-card orange">
+          <i class="fa-solid fa-calendar-check"></i>
+          <h3>{{ stats.total_appts or 0 }}</h3>
+          <p>Total Appointments</p>
+        </div>
+        <div class="stat-card green">
+          <i class="fa-solid fa-circle-check"></i>
+          <h3>{{ stats.completed or 0 }}</h3>
+          <p>Completed</p>
+        </div>
+      </div>
+
+      {% if pending_doctors %}
+      <div class="dash-card alert-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-triangle-exclamation" style="color:#f39c12;"></i> Pending Doctor Approvals</h3>
+        </div>
+        {% for doc in pending_doctors %}
+        <div class="pending-item">
+          <div class="pending-info">
+            <strong>{{ doc.name }}</strong> — {{ doc.specialization }}<br>
+            <small>{{ doc.email }}</small>
+          </div>
+          <div class="pending-actions">
+            <form method="POST" action="{{ url_for('approve_doctor', did=doc.doctor_id) }}" style="display:inline;">
+              <button type="submit" class="btn-sm btn-teal">Approve</button>
+            </form>
+            <form method="POST" action="{{ url_for('reject_doctor', did=doc.doctor_id) }}" style="display:inline;" onsubmit="return confirm('Reject this doctor?')">
+              <button type="submit" class="btn-sm btn-danger">Reject</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- RECENT APPOINTMENTS -->
+      <div class="dash-card">
+        <div class="card-head"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Appointments</h3></div>
+        {% if recent_appts %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for a in recent_appts[:8] %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td>{{ a.patient_name }}</td>
+                  <td>{{ a.doctor_name }}</td>
+                  <td>{{ a.slot_date }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No appointments yet.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- DOCTORS TAB -->
+    <div id="tab-doctors" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-user-doctor"></i> Manage Doctors</h1>
+        <p>Approve, revoke access, or permanently remove doctors</p>
+      </div>
+      <div class="dash-card">
+        <div class="table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Name</th><th>Specialization</th>
+                <th>Email</th><th>Clinic</th><th>Fees</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in all_doctors %}
+              <tr>
+                <td>#{{ doc.doctor_id }}</td>
+                <td><strong>{{ doc.name }}</strong></td>
+                <td>{{ doc.specialization }}</td>
+                <td>{{ doc.email }}</td>
+                <td>&#8377;{{ doc.consultation_fees }}</td>
+                <td>
+                  {% if doc.is_approved %}
+                    <span class="status-badge status-completed">Approved</span>
+                  {% else %}
+                    <span class="status-badge status-scheduled">Pending</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                    {% if doc.is_approved %}
+                      <form method="POST" action="{{ url_for('approve_doctor', did=doc.doctor_id) }}"
+                            onsubmit="return confirm('Revoke approval for {{ doc.name }}? They will no longer be able to log in.')">
+                        <button type="submit" class="btn-sm btn-orange">
+                          <i class="fa-solid fa-ban"></i> Revoke
+                        </button>
+                      </form>
+                    {% else %}
+                      <form method="POST" action="{{ url_for('approve_doctor', did=doc.doctor_id) }}">
+                        <button type="submit" class="btn-sm btn-teal">
+                          <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                      </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('reject_doctor', did=doc.doctor_id) }}"
+                          onsubmit="return confirm('Permanently DELETE {{ doc.name }}? This will also remove all their appointments and slots.')">
+                      <button type="submit" class="btn-sm btn-danger">
+                        <i class="fa-solid fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENTS TAB -->
+    <div id="tab-patients" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-users"></i> Manage Patients</h1>
+      </div>
+      <div class="dash-card">
+        <div class="table-wrap">
+          <table class="dash-table">
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for p in all_patients %}
+              <tr>
+                <td>#{{ p.patient_id }}</td>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.email }}</td>
+                <td>{{ p.phone or '—' }}</td>
+                <td>{{ p.created_at.strftime('%d %b %Y') if p.created_at else '—' }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('delete_patient', pid=p.patient_id) }}" onsubmit="return confirm('Delete this patient?')">
+                    <button type="submit" class="btn-sm btn-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPOINTMENTS TAB -->
+    <div id="tab-appointments" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-calendar-check"></i> All Appointments</h1>
+      </div>
+      <div class="dash-card">
+        {% if recent_appts %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for a in recent_appts %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td>{{ a.patient_name }}</td>
+                  <td>{{ a.doctor_name }}</td>
+                  <td>{{ a.slot_date }}</td>
+                  <td>{{ a.start_time }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No appointments found.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- PENDING APPROVALS TAB -->
+    <div id="tab-pending" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-user-clock"></i> Pending Doctor Approvals</h1>
+      </div>
+      <div class="dash-card">
+        {% if pending_doctors %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Name</th><th>Specialization</th><th>Email</th><th>Clinic</th><th>Fees</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for doc in pending_doctors %}
+                <tr>
+                  <td><strong>{{ doc.name }}</strong></td>
+                  <td>{{ doc.specialization }}</td>
+                  <td>{{ doc.email }}</td>
+                  <td>₹{{ doc.consultation_fees }}</td>
+                  <td style="display:flex;gap:8px;">
+                    <form method="POST" action="{{ url_for('approve_doctor', did=doc.doctor_id) }}">
+                      <button type="submit" class="btn-sm btn-teal">Approve</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('reject_doctor', did=doc.doctor_id) }}" onsubmit="return confirm('Reject?')">
+                      <button type="submit" class="btn-sm btn-danger">Reject</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-circle-check" style="color:#27ae60;font-size:50px;"></i><p>No pending approvals. All clear!</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

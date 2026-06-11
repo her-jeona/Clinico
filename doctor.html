@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Our Doctors - Clinico{% endblock %}
+
+{% block content %}
+<section class="doc-hero">
+  <h1>Our Doctors</h1>
+</section>
+
+<section class="doctors">
+  <p class="sub-title">Our Medical Team</p>
+  <h2 class="main-title">Meet Our Expert Doctors</h2>
+
+  <!-- FILTER BAR -->
+  <div style="margin-bottom:40px;display:flex;justify-content:center;gap:15px;flex-wrap:wrap;">
+    <a href="{{ url_for('doctor_list') }}" class="filter-btn {% if not specialization %}active{% endif %}">All</a>
+    {% for spec in ['Cardiology','Neurology','Pediatrics','ENT','Dental','Orthopedics','Dermatology'] %}
+    <a href="{{ url_for('doctor_list') }}?specialization={{ spec }}"
+       class="filter-btn {% if specialization == spec %}active{% endif %}">{{ spec }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="doctor-container">
+    {% if doctors %}
+      {% for doc in doctors %}
+      <div class="doctor-card">
+        <i class="fa-solid fa-user-doctor" style="font-size:60px;color:#0aa7a7;margin-bottom:15px;display:block;"></i>
+        <h3>{{ doc.name }}</h3>
+        <p class="speciality">{{ doc.specialization }}</p>
+        <p class="contact"><i class="fa-solid fa-phone"></i> {{ doc.contact_no }}</p>
+        <p style="color:#0aa7a7;font-weight:700;margin:10px 0;"><i class="fa-solid fa-indian-rupee-sign"></i> {{ doc.consultation_fees }}</p>
+        <a href="{{ url_for('login') }}"><button class="appoint-btn">Book Appointment</button></a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="grid-column:1/-1;text-align:center;padding:60px;">
+        <i class="fa-solid fa-user-doctor" style="font-size:60px;color:#ddd;"></i>
+        <p style="margin-top:20px;color:#888;">No doctors found for this specialization.</p>
+        <a href="{{ url_for('doctor_list') }}" style="color:#0aa7a7;">View all doctors</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

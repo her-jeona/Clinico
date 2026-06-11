@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard - Clinico{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-circle doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+      <h3>{{ session.name }}</h3>
+      <span class="role-badge doctor-badge">Doctor</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#"  class="nav-item active" onclick="showTab('overview',this)"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="#"  class="nav-item" onclick="showTab('queue',this)"><i class="fa-solid fa-list-ol"></i> Today's Queue</a>
+      <a href="#"  class="nav-item" onclick="showTab('upcoming',this)"><i class="fa-solid fa-calendar"></i> Upcoming</a>
+      <a href="#"  class="nav-item" onclick="showTab('slots',this)"><i class="fa-solid fa-clock"></i> Manage Slots</a>
+      <a href="{{ url_for('doctor_reports') }}" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="dash-main">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="dash-header">
+        <h1>Doctor Dashboard <i class="fa-solid fa-stethoscope"></i></h1>
+        <p>Today: {{ today.strftime('%A, %d %B %Y') }}</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card teal">
+          <i class="fa-solid fa-users"></i>
+          <h3>{{ stats.today_total or 0 }}</h3>
+          <p>Today's Patients</p>
+        </div>
+        <div class="stat-card blue">
+          <i class="fa-solid fa-circle-check"></i>
+          <h3>{{ stats.completed or 0 }}</h3>
+          <p>Total Completed</p>
+        </div>
+        <div class="stat-card orange">
+          <i class="fa-solid fa-list-ol"></i>
+          <h3>{{ today_queue | length }}</h3>
+          <p>Queue Length</p>
+        </div>
+        <div class="stat-card red">
+          <i class="fa-solid fa-ban"></i>
+          <h3>{{ stats.cancelled or 0 }}</h3>
+          <p>Cancelled</p>
+        </div>
+      </div>
+
+      <!-- QUICK QUEUE PREVIEW -->
+      <div class="dash-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-list-ol"></i> Today's Queue Preview</h3>
+          <button onclick="showTab('queue',null)" class="btn-sm btn-teal">View Full Queue</button>
+        </div>
+        {% if today_queue %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Patient</th><th>Problem</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for a in today_queue[:5] %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td><strong>{{ a.patient_name }}</strong><br><small>{{ a.phone }}</small></td>
+                  <td>{{ a.problem_desc or '—' }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                  <td>
+                    <form method="POST" action="{{ url_for('update_appt_status', appt_id=a.appointment_id) }}" style="display:flex;gap:5px;">
+                      <select name="status" class="status-select">
+                        <option value="In Queue" {% if a.status=='In Queue' %}selected{% endif %}>In Queue</option>
+                        <option value="In Progress" {% if a.status=='In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Completed" {% if a.status=='Completed' %}selected{% endif %}>Completed</option>
+                        <option value="No-show" {% if a.status=='No-show' %}selected{% endif %}>No-show</option>
+                      </select>
+                      <button type="submit" class="btn-sm btn-teal">Update</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>No patients scheduled for today.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- TODAY'S QUEUE TAB -->
+    <div id="tab-queue" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-list-ol"></i> Today's Queue</h1>
+        <p>Manage today's patient flow in real-time</p>
+      </div>
+      <div class="dash-card">
+        {% if today_queue %}
+          <div class="queue-live">
+            {% for a in today_queue %}
+            <div class="queue-item status-bg-{{ a.status | lower | replace(' ','-') }}">
+              <div class="queue-token">#{{ a.token_no }}</div>
+              <div class="queue-info">
+                <h4>{{ a.patient_name }}</h4>
+                <p><i class="fa-solid fa-phone"></i> {{ a.phone }}</p>
+                {% if a.problem_desc %}<p><i class="fa-solid fa-notes-medical"></i> {{ a.problem_desc }}</p>{% endif %}
+              </div>
+              <div class="queue-actions">
+                <span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span>
+                <form method="POST" action="{{ url_for('update_appt_status', appt_id=a.appointment_id) }}" style="margin-top:8px;">
+                  <select name="status" class="status-select">
+                    <option value="Confirmed" {% if a.status=='Confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="In Queue" {% if a.status=='In Queue' %}selected{% endif %}>In Queue</option>
+                    <option value="In Progress" {% if a.status=='In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Completed" {% if a.status=='Completed' %}selected{% endif %}>Completed</option>
+                    <option value="No-show" {% if a.status=='No-show' %}selected{% endif %}>No-show</option>
+                  </select>
+                  <button type="submit" class="btn-sm btn-teal" style="margin-top:6px;width:100%;">Update</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-users-slash" style="font-size:50px;color:#ddd;"></i><p>No patients in queue today.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- UPCOMING TAB -->
+    <div id="tab-upcoming" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-calendar"></i> Upcoming Appointments</h1>
+      </div>
+      <div class="dash-card">
+        {% if upcoming %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Token</th><th>Patient</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for a in upcoming %}
+                <tr>
+                  <td><span class="token-badge">#{{ a.token_no }}</span></td>
+                  <td>{{ a.patient_name }}</td>
+                  <td>{{ a.slot_date }}</td>
+                  <td>{{ a.start_time }} - {{ a.end_time }}</td>
+                  <td><span class="status-badge status-{{ a.status | lower | replace(' ','-') }}">{{ a.status }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>No upcoming appointments.</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- MANAGE SLOTS TAB -->
+    <div id="tab-slots" class="tab-content">
+      <div class="dash-header">
+        <h1><i class="fa-solid fa-clock"></i> Manage Time Slots</h1>
+        <p>Create and manage your available appointment slots</p>
+      </div>
+
+      <!-- Add Slot Form -->
+      <div class="dash-card">
+        <div class="card-head"><h3>Add New Slot</h3></div>
+        <form method="POST" action="{{ url_for('add_slot') }}" class="slot-form">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" name="slot_date" class="form-control" required min="{{ today }}">
+            </div>
+            <div class="form-group">
+              <label>Start Time</label>
+              <input type="time" name="start_time" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>End Time</label>
+              <input type="time" name="end_time" class="form-control" required>
+            </div>
+          </div>
+          <button type="submit" class="auth-btn" style="width:auto;padding:11px 35px;">Add Slot</button>
+        </form>
+      </div>
+
+      <!-- Existing Slots -->
+      <div class="dash-card">
+        <div class="card-head"><h3>Your Time Slots</h3></div>
+        {% if my_slots %}
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead><tr><th>Date</th><th>Start</th><th>End</th><th>Available</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for s in my_slots %}
+                <tr>
+                  <td>{{ s.slot_date }}</td>
+                  <td>{{ s.start_time }}</td>
+                  <td>{{ s.end_time }}</td>
+                  <td>
+                    {% if s.is_available %}
+                      <span class="status-badge status-confirmed">Available</span>
+                    {% else %}
+                      <span class="status-badge status-in-progress">Booked</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if s.is_available %}
+                    <form method="POST" action="{{ url_for('delete_slot', slot_id=s.slot_id) }}" onsubmit="return confirm('Delete this slot?')">
+                      <button type="submit" class="btn-sm btn-danger">Delete</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><i class="fa-solid fa-clock"></i><p>No time slots created yet. Add your first slot above!</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

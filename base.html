@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Clinico{% endblock %}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-left">
+    <span><i class="fa-solid fa-location-dot"></i> California, TX 70240</span>
+    <span><i class="fa-solid fa-envelope"></i> clinico@gmail.com</span>
+    <span><i class="fa-solid fa-phone"></i> 9876543210</span>
+  </div>
+  <a class="learn-btn" href="{{ url_for('about') }}">Learn More</a>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo"><a href="{{ url_for('index') }}" style="color:white;text-decoration:none;">Clinico</a></div>
+  <div class="nav-links">
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('about') }}">About</a>
+    <a href="{{ url_for('doctor_list') }}">Doctors</a>
+    <a href="{{ url_for('contact') }}">Contact</a>
+  </div>
+  <div class="nav-auth">
+    {% if session.get('user_id') %}
+      <span style="color:white;margin-right:15px;">Hi, {{ session.name }}</span>
+      {% if session.role == 'patient' %}
+        <a href="{{ url_for('patient_dashboard') }}" class="nav-dash-btn">Dashboard</a>
+      {% elif session.role == 'doctor' %}
+        <a href="{{ url_for('doctor_dashboard') }}" class="nav-dash-btn">Dashboard</a>
+      {% elif session.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-dash-btn">Dashboard</a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="nav-dash-btn" style="background:#e74c3c;">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="nav-dash-btn">Login</a>
+      <a href="{{ url_for('register') }}" class="nav-dash-btn" style="background:white;color:#0aa7a7;">Register</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">{{ msg }}
+          <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <h3>About Us</h3>
+      <p>Clinico is your trusted healthcare partner, connecting you with experienced doctors and modern medical facilities.</p>
+      <a href="{{ url_for('login') }}"><button class="footer-btn">Book Now</button></a>
+    </div>
+    <div>
+      <h3>Departments</h3>
+      <ul class="footer-links">
+        <li><a href="{{ url_for('doctor_list') }}?specialization=Cardiology">Cardiology</a></li>
+        <li><a href="{{ url_for('doctor_list') }}?specialization=Neurology">Neurology</a></li>
+        <li><a href="{{ url_for('doctor_list') }}?specialization=Pediatrics">Pediatrics</a></li>
+        <li><a href="{{ url_for('doctor_list') }}?specialization=ENT">ENT</a></li>
+        <li><a href="{{ url_for('doctor_list') }}?specialization=Dental">Dental</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Useful Links</h3>
+      <ul class="footer-links">
+        <li><a href="{{ url_for('about') }}">About</a></li>
+        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+        <li><a href="{{ url_for('register') }}">Register</a></li>
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Our Branches</h3>
+      <p><strong>ACMH Hospital</strong><br>123 Health Street, Cityville</p>
+      <p><strong>Central Hospital</strong><br>456 Wellness Ave, Townsville</p>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:30px;color:#888;font-size:13px;">
+    &copy; 2025 Clinico Smart Appointment System. All rights reserved.
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

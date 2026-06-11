@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}My Reports - Doctor{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-circle doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+      <h3>{{ session.name }}</h3>
+      <span class="role-badge doctor-badge">Doctor</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('doctor_dashboard') }}" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="#" class="nav-item active"><i class="fa-solid fa-chart-bar"></i> My Reports</a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-header">
+      <h1><i class="fa-solid fa-chart-bar"></i> My Reports</h1>
+      <p>Your appointment statistics and performance</p>
+    </div>
+
+    <div class="charts-grid">
+      <div class="dash-card chart-card">
+        <div class="card-head"><h3>Appointments by Status</h3></div>
+        <canvas id="statusChart" height="220"></canvas>
+      </div>
+      <div class="dash-card chart-card">
+        <div class="card-head"><h3>Daily Trend (Last 30 Days)</h3></div>
+        <canvas id="dailyChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="card-head"><h3><i class="fa-solid fa-table"></i> Daily Breakdown</h3></div>
+      {% if daily %}
+        <div class="table-wrap">
+          <table class="dash-table">
+            <thead><tr><th>Date</th><th>Total</th><th>Completed</th><th>Cancelled</th><th>No-show</th></tr></thead>
+            <tbody>
+              {% for d in daily %}
+              <tr>
+                <td>{{ d.appointment_date }}</td>
+                <td>{{ d.total }}</td>
+                <td style="color:#27ae60;">{{ d.completed }}</td>
+                <td style="color:#e74c3c;">{{ d.cancelled }}</td>
+                <td style="color:#f39c12;">{{ d.no_show }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state"><p>No data available yet.</p></div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+{% block scripts %}
+<script>
+const statusData = {{ (by_status or []) | tojson }};
+const dailyData  = {{ (daily or []) | tojson }};
+
+new Chart(document.getElementById('statusChart'), {
+  type: 'pie',
+  data: {
+    labels: statusData.map(s => s.status),
+    datasets: [{ data: statusData.map(s => s.cnt),
+      backgroundColor: ['#0aa7a7','#27ae60','#e74c3c','#f39c12','#3498db','#8e44ad'] }]
+  },
+  options: { plugins: { legend: { position: 'bottom' } } }
+});
+
+new Chart(document.getElementById('dailyChart'), {
+  type: 'line',
+  data: {
+    labels: dailyData.map(d => d.appointment_date).reverse(),
+    datasets: [
+      { label: 'Total', data: dailyData.map(d => d.total).reverse(), borderColor: '#0aa7a7', fill: false, tension: 0.4 },
+      { label: 'Completed', data: dailyData.map(d => d.completed).reverse(), borderColor: '#27ae60', fill: false, tension: 0.4 }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom' } } }
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Clinico - Home{% endblock %}
+
+{% block content %}
+
+<!-- HERO SLIDER -->
+<section class="hero">
+  <div class="slides" id="slides">
+    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1600&q=80');"></div>
+    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1600&q=80');"></div>
+  </div>
+  <div class="hero-content">
+    <p class="sub-title">Our Services</p>
+    <h1 id="heroTitle">Empowering<br>Your Health<br>Journey</h1>
+    <a href="{{ url_for('login') }}"><button class="hero-btn">Book Appointment</button></a>
+  </div>
+  <div class="arrow left" onclick="prevSlide()">&#10094;</div>
+  <div class="arrow right" onclick="nextSlide()">&#10095;</div>
+</section>
+
+<!-- MISSION -->
+<section class="mission-section">
+  <div class="mission-container">
+    <div class="mission-left">
+      <span class="tag">Our Mission</span>
+      <h2>Your Health, Our Priority - Clinico</h2>
+      <p>Clinico is your trusted partner in health. We provide exceptional care, advanced technology, and personalized attention for all your healthcare needs.</p>
+      <hr>
+      <h3>Smart Healthcare</h3>
+      <div class="features">
+        <div class="feature"><span>✔</span> Easy Scheduling</div>
+        <div class="feature"><span>✔</span> Quick Results</div>
+        <div class="feature"><span>✔</span> Token Queue</div>
+        <div class="feature"><span>✔</span> 24/7 Support</div>
+      </div>
+    </div>
+    <div class="mission-right">
+      <div class="info-card">
+        <img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=900&q=80">
+        <div class="card-body">
+          <h4>Our Vision</h4>
+          <p>Our mission is to provide accessible, high-quality healthcare services to our community, ensuring everyone can achieve optimal health.</p>
+          <button>Read More</button>
+        </div>
+      </div>
+      <div class="info-card">
+        <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=900&q=80">
+        <div class="card-body">
+          <h4>Our Values</h4>
+          <p>We envision a healthier future for all, driven by innovation, compassion, and a commitment to excellence in patient care.</p>
+          <button>Read More</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPARTMENTS -->
+<section class="department-section">
+  <p class="sub-title">Our Services</p>
+  <h2 class="main-title">Our Expert Departments</h2>
+  <div class="dept-container">
+    <div class="dept-card">
+      <div class="dept-top"><div class="icon-cir"><i class="fa-solid fa-heart-pulse"></i></div><span class="number">01</span></div>
+      <h3>Cardiology Unit</h3>
+      <p>Comprehensive cardiac care, from diagnostics to rehabilitation, ensuring your heart health is in expert hands.</p>
+      <ul><li>ECG Tests</li><li>Echocardiogram</li><li>Heart Checkup</li><li>Stress Test</li><li>Cardiac Rehab</li></ul>
+      <a href="{{ url_for('doctor_list') }}?specialization=Cardiology"><button>View More</button></a>
+    </div>
+    <div class="dept-card">
+      <div class="dept-top"><div class="icon-cir"><i class="fa-solid fa-brain"></i></div><span class="number">02</span></div>
+      <h3>Neurology Unit</h3>
+      <p>Specialized in diagnosing and treating neurological disorders, providing advanced care for your brain and nervous system.</p>
+      <ul><li>EEG Tests</li><li>Stroke Care</li><li>Headache Clinic</li><li>Sleep Studies</li><li>Memory Care</li></ul>
+      <a href="{{ url_for('doctor_list') }}?specialization=Neurology"><button>View More</button></a>
+    </div>
+    <div class="dept-card">
+      <div class="dept-top"><div class="icon-cir"><i class="fa-solid fa-baby"></i></div><span class="number">03</span></div>
+      <h3>Pediatrics Unit</h3>
+      <p>Dedicated to providing compassionate care for your children, ensuring their healthy growth and development.</p>
+      <ul><li>Vaccinations</li><li>Growth Monitoring</li><li>Child Checkup</li><li>Nutrition Advice</li><li>Sick Visits</li></ul>
+      <a href="{{ url_for('doctor_list') }}?specialization=Pediatrics"><button>View More</button></a>
+    </div>
+    <div class="dept-card">
+      <div class="dept-top"><div class="icon-cir"><i class="fa-solid fa-ear-listen"></i></div><span class="number">04</span></div>
+      <h3>ENT Unit</h3>
+      <p>Comprehensive care for ear, nose, and throat conditions, providing expert diagnosis and treatment for all ages.</p>
+      <ul><li>Hearing Tests</li><li>Allergy Tests</li><li>Sinus Care</li><li>Voice Therapy</li><li>Tonsil Check</li></ul>
+      <a href="{{ url_for('doctor_list') }}?specialization=ENT"><button>View More</button></a>
+    </div>
+  </div>
+</section>
+
+<!-- APPOINTMENT -->
+<section class="appointment-section">
+  <div class="appointment-overlay">
+    <div class="appointment-form">
+      <h2>Book Appointment Now</h2>
+      <form action="{{ url_for('login') }}" method="get">
+        <div class="form-row">
+          <input type="text" placeholder="First Name">
+          <input type="text" placeholder="Last Name">
+        </div>
+        <div class="form-row">
+          <input type="tel" placeholder="Phone">
+          <input type="date">
+        </div>
+        <textarea placeholder="Briefly state your problem"></textarea><br>
+        <button type="submit">Book Now</button>
+      </form>
+    </div>
+    <div class="appointment-text">
+      <small>Our Experts</small>
+      <h2>Expert Consultations for Your Needs</h2>
+      <p>Get personalized medical advice from our experienced consultants. We provide expert guidance and support for your health concerns. Book a consultation today!</p>
+      <div class="features-row">
+        <div class="feature-box"><i class="fa-solid fa-calendar-check"></i><h4>Easy Booking</h4></div>
+        <div class="feature-box"><i class="fa-solid fa-bolt"></i><h4>Token System</h4></div>
+        <div class="feature-box"><i class="fa-solid fa-shield-heart"></i><h4>Live Queue</h4></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM SECTION -->
+<section class="team-section">
+  <p class="sub-title">Our Team</p>
+  <h2 class="main-title">Meet Our Doctors</h2>
+  <div class="slider-wrapper">
+    <button class="arrow left" onclick="slideLeft()">&#10094;</button>
+    <div class="slider-container" id="slider">
+      {% if doctors %}
+        {% for doc in doctors %}
+        <div class="doc-card">
+            <i class="fa-solid fa-user-doctor" style="font-size:60px;color:#0aa7a7;display:block;margin: 12px 60px;"></i>
+          <h3>{{ doc.name }}</h3>
+          <p>{{ doc.specialization }}</p>
+          <p><strong>Fees:</strong> ₹{{ doc.consultation_fees }}</p>
+          <p><strong>Contact:</strong> {{ doc.contact_no }}</p>
+          <a href="{{ url_for('login') }}"><button>Book Now</button></a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="doc-card">
+          <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80" />
+          <h3>Dr. Smith</h3><p>Cardiology Unit</p>
+          <div class="time-row"><span>9AM - 5PM</span><span>8:00 - 17:30</span></div>
+          <a href="{{ url_for('login') }}"><button>View More</button></a>
+        </div>
+        <div class="doc-card">
+          <img src="https://images.unsplash.com/photo-1550831107-1553da8c8464?auto=format&fit=crop&w=400&q=80" />
+          <h3>Dr. Johnson</h3><p>ENT Unit</p>
+          <div class="time-row"><span>9AM - 5PM</span><span>8:00 - 17:30</span></div>
+          <a href="{{ url_for('login') }}"><button>View More</button></a>
+        </div>
+      {% endif %}
+    </div>
+    <button class="arrow right" onclick="slideRight()">&#10095;</button>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-user-doctor"></i></div><h2>15+</h2><p>Years Experience</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-hospital"></i></div><h2>4000+</h2><p>Happy Patients</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-user-nurse"></i></div><h2>50+</h2><p>Expert Doctors</p></div>
+  <div class="stat-box"><div class="icon"><i class="fa-solid fa-stethoscope"></i></div><h2>10+</h2><p>Medical Branches</p></div>
+</section>
+
+<!-- CONTENT SECTION -->
+<section class="content-section">
+  <div class="health-tips">
+    <h2>Health Tips</h2>
+    <p>Our doctors recommend regular check-ups, a balanced diet, and exercise for optimal health. Stay informed, ask questions, and prioritize your well-being for a healthier life.</p>
+  </div>
+  <div class="testimonial">
+    <h2>Exceptional Care and Support at Clinico</h2>
+    <p>Clinico provided exceptional care and support during a difficult time. I highly recommend their services for anyone seeking quality healthcare.</p>
+    <div class="patient-box">
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" />
+      <div><h4>Jane Doe</h4><span>Patient</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter">
+  <h2>Stay Informed</h2>
+  <p>Subscribe to our newsletter for health updates and tips.</p>
+  <div class="newsletter-box">
+    <input type="email" placeholder="Your Email here">
+    <button>Subscribe</button>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="map-section">
+  <iframe src="https://www.google.com/maps?q=New%20York%20USA&output=embed" allowfullscreen loading="lazy"></iframe>
+</section>
+
+{% endblock %}
